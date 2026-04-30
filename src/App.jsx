@@ -1,5 +1,6 @@
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
+import Image from '@tiptap/extension-image'
 import Collaboration from '@tiptap/extension-collaboration'
 import CollaborationCursor from '@tiptap/extension-collaboration-cursor'
 import * as Y from 'yjs'
@@ -15,7 +16,6 @@ function App() {
     ydoc
   )
 
-  // 这里是修复关键！必须用 prosemirror 不能用 document
   const yFragment = ydoc.getXmlFragment('prosemirror')
 
   const editor = useEditor({
@@ -23,24 +23,49 @@ function App() {
       StarterKit.configure({
         history: false,
       }),
+      Image,
       Collaboration.configure({
         document: ydoc,
         fragment: yFragment,
       }),
       CollaborationCursor.configure({
         provider,
-        user: { name: '测试用户', color: '#ff0000' },
+        user: { name: '协作用户', color: '#ff5555' },
       }),
     ],
-    // 给一个默认内容，确保编辑器一定能显示！
-    content: `<p>我现在能正常编辑啦！多窗口同步成功！</p>`,
+    content: `
+      <h2>CVTE 高效协作 π - AI 协同编辑器</h2>
+      <p>支持多人实时同步 + 图片上传 + 富文本编辑 ✅</p>
+    `,
   })
+
+  if (!editor) return null
 
   return (
     <div className="app">
-      <h1>CVTE 高效协作 π - 实时协同编辑</h1>
-      <div className="editor-container">
+      <div className="header">
+        <h1>📝 CVTE 高效协作 π</h1>
+        <p>多人实时协作文档助手</p>
+      </div>
+
+      <div className="toolbar">
+        <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className="toolbar-btn">标题</button>
+        <button onClick={() => editor.chain().focus().toggleBold().run()} className="toolbar-btn">加粗</button>
+        <button onClick={() => editor.chain().focus().toggleItalic().run()} className="toolbar-btn">斜体</button>
+        <button onClick={() => editor.chan().focus().toggleBulletList().run()} className="toolbar-btn">列表</button>
+        
+        <button onClick={() => {
+          const url = prompt('输入图片 URL：')
+          if (url) editor.chain().focus().setImage({ src: url }).run()
+        }} className="toolbar-btn primary">📎 插入图片</button>
+      </div>
+
+      <div className="editor-wrapper">
         <EditorContent editor={editor} className="editor" />
+      </div>
+
+      <div className="footer">
+        基于 React + Tiptap + Yjs 实时协同
       </div>
     </div>
   )
