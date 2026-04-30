@@ -1,3 +1,16 @@
+# CVTE 高效协作 π
+基于 React + Tiptap + Yjs 的多人实时协作文档编辑器
+
+## 功能
+- 多人实时同步编辑
+- 本地图片上传
+- 富文本编辑（标题、加粗、斜体、列表）
+
+## 本地启动
+```bash
+npm install
+npm run dev
+
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -14,3 +27,4 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
