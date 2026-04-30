@@ -7,6 +7,7 @@ import * as Y from 'yjs'
 import { WebsocketProvider } from 'y-websocket'
 import { useEffect, useState } from 'react'
 import './App.css'
+import { getConflictMergeSuggestion } from './api.js'
 
 // 随机用户（避免多人冲突，每个窗口独立生成）
 const userList = [
@@ -28,12 +29,18 @@ function App() {
     new WebsocketProvider('ws://localhost:1234', 'cvte-doc', ydoc)
   )
 
+  // 👇 AI 冲突合并测试状态（我帮你加在这里）
+  const [context, setContext] = useState('文档原始上下文：我今天去超市买了苹果')
+  const [changeA, setChangeA] = useState('用户A修改：我今天去超市买了香蕉')
+  const [changeB, setChangeB] = useState('用户B修改：我今天去菜市场买了苹果')
+  const [aiResult, setAiResult] = useState('')
+  const [loading, setLoading] = useState(false)
+
   const yFragment = ydoc.getXmlFragment('prosemirror')
 
   const editor = useEditor({
     editable: true,
     extensions: [
-      // 去掉 history: false，让编辑器自己处理基础状态
       StarterKit,
       Image,
       Collaboration.configure({
@@ -51,7 +58,21 @@ function App() {
     `,
   })
 
-  // 清理 provider 连接，避免窗口关闭/刷新时的残留状态
+  // 👇 AI 测试调用函数（我帮你加在这里）
+  const testAiMerge = async () => {
+    setLoading(true)
+    setAiResult('正在请求 AI 合并...')
+    try {
+      const res = await getConflictMergeSuggestion(context, changeA, changeB)
+      setAiResult(res)
+    } catch (err) {
+      setAiResult('请求失败：' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // 清理连接
   useEffect(() => {
     return () => {
       provider.destroy()
@@ -59,7 +80,7 @@ function App() {
     }
   }, [provider, ydoc])
 
-  // 本地图片上传函数
+  // 本地图片上传
   const handleLocalImage = (e) => {
     const file = e.target.files[0]
     if (!file || !editor) return
@@ -70,8 +91,6 @@ function App() {
       editor.chain().focus().setImage({ src: imgUrl }).run()
     }
     reader.readAsDataURL(file)
-
-    // 重置 input，支持重复选同一张图
     e.target.value = ''
   }
 
@@ -113,7 +132,7 @@ function App() {
         <button 
           onClick={() => editor.chain().focus().clearContent().run()} 
           className="toolbar-btn"
-  >
+        >
           清空内容
         </button>
 
@@ -130,6 +149,57 @@ function App() {
 
       <div className="editor-wrapper">
         <EditorContent editor={editor} className="editor" />
+      </div>
+
+      {/* 👇 AI 测试区域（我帮你加在这里，在 footer 上方） */}
+      <div className="ai-test-section" style={{ marginTop: '20px', padding: '15px', border: '1px solid #eee', borderRadius: '8px' }}>
+        <h3>🧪 AI 冲突合并测试</h3>
+
+        <div style={{ marginBottom: '10px' }}>
+          <label>文档上下文：</label>
+          <textarea
+            value={context}
+            onChange={(e) => setContext(e.target.value)}
+            rows="2"
+            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '10px' }}>
+          <label>用户 A 修改：</label>
+          <textarea
+            value={changeA}
+            onChange={(e) => setChangeA(e.target.value)}
+            rows="2"
+            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+          />
+        </div>
+
+        <div style={{ marginBottom: '10px' }}>
+          <label>用户 B 修改：</label>
+          <textarea
+            value={changeB}
+            onChange={(e) => setChangeB(e.target.value)}
+            rows="2"
+            style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+          />
+        </div>
+
+        <button
+          onClick={testAiMerge}
+          disabled={loading}
+          className="toolbar-btn primary"
+          style={{ margin: '10px 0' }}
+        >
+          {loading ? '请求中...' : '🚀 测试 AI 冲突合并'}
+        </button>
+
+        <div style={{ marginTop: '15px' }}>
+          <h4>📄 AI 返回结果：</h4>
+          <pre style={{ whiteSpace: 'pre-wrap', background: '#f5f5f5', padding: '12px', borderRadius: '6px' }}>
+            {aiResult || '暂无结果'}
+          </pre>
+        </div>
       </div>
 
       <div className="footer">
