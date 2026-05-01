@@ -26,7 +26,7 @@ function App() {
   // 每个窗口独立创建 Yjs 实例
   const [ydoc] = useState(() => new Y.Doc())
   const [provider] = useState(() => 
-    new WebsocketProvider('ws://localhost:1234', 'cvte-doc', ydoc)
+    new WebsocketProvider('wss://cvte-collab-demo-production.up.railway.app', 'cvte-doc', ydoc)
   )
 
   // 👇 AI 冲突合并测试状态（我帮你加在这里）
