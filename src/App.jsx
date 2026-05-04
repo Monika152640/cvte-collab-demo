@@ -42,7 +42,7 @@ function App() {
   })
   const [ydoc] = useState(() => new Y.Doc())
   const [provider] = useState(() =>
-    new WebsocketProvider(import.meta.env.VITE_WS_URL, 'cvte-doc', ydoc)
+    new WebsocketProvider(import.meta.env.VITE_WS_URL || 'wss://cvte-collab-demo-production.up.railway.app', 'cvte-doc', ydoc)
   )
 
   const [commentMap] = useState(() => ydoc.getMap('comments'))
