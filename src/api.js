@@ -1,10 +1,23 @@
-import OpenAI from 'openai'
+const API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY
+const BASE_URL = (import.meta.env.VITE_DEEPSEEK_BASE_URL || '').replace(/\/+$/, '')
 
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_DEEPSEEK_API_KEY,
-  baseURL: import.meta.env.VITE_DEEPSEEK_BASE_URL,
-  dangerouslyAllowBrowser: true,
-})
+const callAI = async (prompt, temperature = 0.3) => {
+  const res = await fetch(`${BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'glm-4',
+      messages: [{ role: 'user', content: prompt }],
+      temperature
+    })
+  })
+  if (!res.ok) throw new Error(`API请求失败 (${res.status})`)
+  const data = await res.json()
+  return data.choices[0].message.content
+}
 
 export const getConflictMergeSuggestion = async (context, userAChange, userBChange) => {
   const prompt = `你是一个专业的协作文档助手。当前多人协作编辑文档时出现了语义冲突，不同用户对同一内容有不同的理解和修改。请根据上下文和各位用户的修改意图，生成一个合理的语义级合并建议。
@@ -29,12 +42,7 @@ ${userBChange}
 
 【保留理由】
 说明为什么这样合并`
-  const response = await openai.chat.completions.create({
-    model: 'glm-4',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.3,
-  })
-  return response.choices[0].message.content
+  return callAI(prompt)
 }
 
 export const getAISummary = async (docText, commentStr) => {
@@ -46,12 +54,7 @@ ${docText || '(无内容)'}
 
 评论内容：
 ${commentStr || '(无评论)'}`
-  const response = await openai.chat.completions.create({
-    model: 'glm-4',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.3,
-  })
-  return response.choices[0].message.content
+  return callAI(prompt)
 }
 
 export const extractTodosFromDiscussion = async (docText, commentsStr) => {
@@ -69,12 +72,7 @@ ${commentsStr || '(无评论)'}
 例如：
 整理会议纪要并发给全员 | 负责人：张三 | 优先级：高
 预约下次评审会议时间 | 负责人：李四 | 优先级：中`
-  const response = await openai.chat.completions.create({
-    model: 'glm-4',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.2,
-  })
-  return response.choices[0].message.content
+  return callAI(prompt, 0.2)
 }
 
 export const compareVersions = async (currentContent, versionContent, versionNote) => {
@@ -98,10 +96,5 @@ ${versionContent || '(空文档)'}
 
 【综合建议】
 给出整体版本管理建议`
-  const response = await openai.chat.completions.create({
-    model: 'glm-4',
-    messages: [{ role: 'user', content: prompt }],
-    temperature: 0.3,
-  })
-  return response.choices[0].message.content
+  return callAI(prompt)
 }
